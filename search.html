@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>استعلام عن الشهادة</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
+    <style>
+        /* Styles for responsiveness and layout */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: Arial, sans-serif; }
+        body { display: flex; align-items: center; justify-content: center; min-height: 100vh; background-color: #f4f4f4; padding: 20px; }
+        .container { width: 100%; max-width: 500px; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2); text-align: center; }
+        h1 { margin-bottom: 20px; font-size: 1.5rem; color: #333; }
+        label { display: block; margin-bottom: 10px; font-size: 1rem; color: #666; }
+        input[type="text"] { width: 100%; padding: 12px; margin-bottom: 20px; border: 1px solid #ddd; border-radius: 5px; font-size: 1rem; }
+        button { width: 100%; padding: 12px; font-size: 1rem; color: #fff; background-color: #4CAF50; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s ease; }
+        button:hover { background-color: #45a049; }
+        #result { margin: 15px 0; font-size: 1rem; color: #333; }
+        .pdf-container { width: 100%; max-height: 500px; overflow: auto; border: 1px solid #ddd; margin-top: 20px; border-radius: 5px; }
+        canvas { display: block; max-width: 100%; height: auto; margin: auto; }
+        #downloadBtn { margin-top: 20px; padding: 12px; background-color: #2196F3; }
+        #downloadBtn:hover { background-color: #0b7dda; }
+    </style>
+</head>
+<body>
+    <div class="container">
+	        <img src="bannersch-removebg-preview.png" alt="logo1" width="150" height="100">
+
+        <h1>استعلام عن الشهادة</h1>
+        <label for="studentId">أدخل رقم الهوية:</label>
+        <input type="text" id="studentId" required>
+        <button onclick="searchCertificate()">بحث</button>
+
+        <div id="result"></div>
+        <div id="pdfContainer" class="pdf-container"></div>
+        <button id="downloadBtn" style="display:none;" onclick="downloadCertificate()">تحميل الشهادة كملف PDF</button>
+    </div>
+
+    <script>
+        let foundPage = null;
+        let pdfDoc = null;
+
+        async function searchCertificate() {
+            const studentId = document.getElementById('studentId').value.trim();
+            const resultDiv = document.getElementById('result');
+            const pdfContainer = document.getElementById('pdfContainer');
+            document.getElementById('downloadBtn').style.display = "none";
+            pdfContainer.innerHTML = "";
+            resultDiv.textContent = "";
+
+            // Validate the student ID length
+            if (studentId.length !== 10 || isNaN(studentId)) {
+                resultDiv.textContent = "لقد أدخلت رقم هوية خاطئ. يجب أن يتكون من 10 أرقام.";
+                return;
+            }
+
+            resultDiv.textContent = "جاري البحث...";
+
+            const pdfFiles = ['uploads/file1.pdf', 'uploads/file2.pdf']; // قائمة ملفات PDF
+            let certificateFound = false;
+
+            // Loop through each PDF file to search for the student ID
+            for (const pdfFile of pdfFiles) {
+                try {
+                    pdfDoc = await pdfjsLib.getDocument(pdfFile).promise;
+                    
+                    for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                        const page = await pdfDoc.getPage(pageNum);
+                        const textContent = await page.getTextContent();
+                        const text = textContent.items.map(item => item.str).join(" ");
+                        
+                        if (text.includes(studentId)) {
+                            displayCertificatePage(page, pdfContainer);
+                            foundPage = pageNum;
+                            document.getElementById('downloadBtn').style.display = "block";
+                            certificateFound = true;
+                            break;
+                        }
+                    }
+                } catch (error) {
+                    console.error("Error loading PDF:", error);
+                }
+
+                if (certificateFound) break;
+            }
+
+            resultDiv.textContent = certificateFound ? "تم العثور على الشهادة." : "لم يتم العثور على شهادة للهوية المدخلة.";
+        }
+
+        function displayCertificatePage(page, container) {
+            const viewport = page.getViewport({ scale: 1.5 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+
+            page.render({
+                canvasContext: context,
+                viewport: viewport
+            }).promise.then(() => {
+                container.appendChild(canvas);
+            });
+        }
+
+        async function downloadCertificate() {
+            if (foundPage && pdfDoc) {
+                const pdfBytes = await pdfDoc.getData();
+                const existingPdfBytes = new Uint8Array(pdfBytes);
+                const pdfDocNew = await PDFLib.PDFDocument.load(existingPdfBytes);
+                const newPdf = await PDFLib.PDFDocument.create();
+
+                const [copiedPage] = await newPdf.copyPages(pdfDocNew, [foundPage - 1]);
+                newPdf.addPage(copiedPage);
+
+                const newPdfBytes = await newPdf.save();
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+
+                const link = document.createElement('a');
+                link.href = URL.createObjectURL(blob);
+                link.download = `الشهادة_${foundPage}.pdf`;
+                link.click();
+            }
+        }
+    </script>
+</body>
+</html>
