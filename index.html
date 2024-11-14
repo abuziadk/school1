@@ -26,8 +26,13 @@
         /* Footer styles */
         footer { margin-top: 30px; text-align: center; color: #666; font-size: 0.9rem; }
         footer p { margin: 10px 0; }
-        .social-icons a { margin: 0 10px; color: #4CAF50; text-decoration: none; font-size: 1.1rem; }
-        .social-icons a:hover { color: #45a049; }
+        .social-icons a { margin: 0 10px; text-decoration: none; font-size: 1.1rem; }
+        .social-icons a:hover { opacity: 0.8; }
+
+        /* Specific colors for social media icons */
+        .social-icons a.whatsapp { color: #25D366; }
+        .social-icons a.facebook { color: #3b5998; } /* Blue for Facebook */
+        .social-icons a.x { color: #1D9BF0; } /* X logo color */
         hr { margin: 20px 0; border: 0; border-top: 1px solid #ddd; }
     </style>
 </head>
@@ -48,14 +53,14 @@
         <p><b><i>All rights reserved &copy; 2024</b></i></p>
         <p><b>Programming and design by Eng.Khalil Abuhozah<i></b></p> 
         <div class="social-icons">
-            <a href="https://wa.me/+966548884252" target="_blank"><i class="fab fa-whatsapp"></i> WhatsApp</a>
-            <a href="https://www.facebook.com/khalil.abuhozah/" target="_blank"><i class="fab fa-facebook"></i> Facebook</a>
-            <a href="https://x.com/abuhawzah/" target="_blank"><i class="fab fa-twitter"></i> Twitter</a>
+            <a href="https://wa.me/+966548884252" target="_blank" class="whatsapp"><i class="fab fa-whatsapp"></i> WhatsApp</a>
+            <a href="https://www.facebook.com/khalil.abuhozah/" target="_blank" class="facebook"><i class="fab fa-facebook"></i> Facebook</a>
+            <a href="https://x.com/abuhawzah/" target="_blank" class="x"><img src="C:\Users\abuah\Downloads\school1-main\school1-main\twitter-x-logo-png_seeklogo-492396.png" alt="X Logo" style="width: 16px; height: 16px;"> </a>
         </div>
         <hr>
     </footer>
 
-    <script>
+   <script>
         let foundPage = null;
         let pdfDoc = null;
 
@@ -136,10 +141,11 @@
 
                 const link = document.createElement('a');
                 link.href = URL.createObjectURL(blob);
-                link.download = `الشهادة_${foundPage}.pdf`;
+                link.download = الشهادة_${foundPage}.pdf;
                 link.click();
             }
         }
     </script>
+
 </body>
 </html>
